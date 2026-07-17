@@ -33,6 +33,24 @@ theorem evalAt_smul_of_isHomogeneous {P : BivariatePolynomial} {n : ℕ}
   rw [hprod]
   ring
 
+/-- The full polar-coordinate Lie-derivative identity used in the manuscript.
+For a homogeneous polynomial of degree `2 * N`, evaluation at
+`r (cos θ, sin θ)` is
+
+`r^(2*N+2) * (p'(θ) + 2*N*(-1+5*cos(2*θ))*p(θ))`.
+-/
+theorem lieDerivative_polar {P : BivariatePolynomial} {N : ℕ}
+    (hN : 0 < N) (hP : P.IsHomogeneous (2 * N)) (r theta : ℝ) :
+    evalAt (lieDerivative P) (r • circlePoint theta) =
+      r ^ (2 * N + 2) *
+        (circleTraceDerivative P theta +
+          (2 * N) * radialCoefficient theta * circleTrace P theta) := by
+  rw [evalAt_smul_of_isHomogeneous
+    (lieDerivative_isHomogeneous (n := 2 * N) (by omega) hP)]
+  rw [lieDerivative_on_circle hP theta]
+  push_cast
+  rfl
+
 /-- In particular, a homogeneous polynomial changes under antipodal negation by
 the parity factor `(-1)^n`. -/
 theorem evalAt_neg_of_isHomogeneous {P : BivariatePolynomial} {n : ℕ}

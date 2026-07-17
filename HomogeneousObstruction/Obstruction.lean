@@ -13,12 +13,12 @@ def obstructionWeight (g : ℝ → ℝ) (θ : ℝ) : ℝ :=
 
 /-- The final Fourier contradiction, parametrized by the strict logarithmic second-harmonic
 bound.  This is the outside layer of the proof of main theorem item (3). -/
-theorem fourierContradiction_of_log_bound
+theorem fourierContradiction_of_log_bound_awayFromZero
     {P : BivariatePolynomial} {N : ℕ}
     (hN : 0 < N)
     (hhom : P.IsHomogeneous (2 * N))
     (hpd : PositiveDefinite P)
-    (hlie : LieNonpositive P)
+    (hlie : LieNonpositiveAwayFromZero P)
     (hlog :
       ‖realPaperFourierCoeff
         (normalizedLogDerivative N (circleTrace P) (circleTraceDerivative P)) 2‖ < 1) :
@@ -38,7 +38,12 @@ theorem fourierContradiction_of_log_bound
     field_simp [htwoN_ne, (hp θ).ne']
 
   have hp_period : circleTrace P (2 * Real.pi) = circleTrace P 0 := by
-    simpa using circleTrace_periodic P 0
+    have hp_pi := circleTrace_pi_periodic_of_evenDegree hhom
+    calc
+      circleTrace P (2 * Real.pi) = circleTrace P Real.pi := by
+        simpa [two_mul] using hp_pi Real.pi
+      _ = circleTrace P 0 := by
+        simpa using hp_pi 0
   have hg_zero : realPaperFourierCoeff g 0 = 0 := by
     rw [hg_eq]
     exact realPaperFourierCoeff_const_mul_logDerivative_zero
@@ -60,13 +65,21 @@ theorem fourierContradiction_of_log_bound
 
   have hw_nonneg : ∀ θ, 0 ≤ w θ := by
     intro θ
-    have hLie := hlie (circlePoint θ)
-    rw [lieDerivative_on_circle hhom θ] at hLie
+    have hLie := hlie (circlePoint θ) (circlePoint_ne_zero θ)
+    have hpolar :
+        evalAt (lieDerivative P) (circlePoint θ) =
+          circleTraceDerivative P θ +
+            (2 * N) * radialCoefficient θ * circleTrace P θ := by
+      simpa using lieDerivative_polar hN hhom 1 θ
+    rw [hpolar] at hLie
     have hden : 0 < (((2 * N : ℕ) : ℝ)) * circleTrace P θ :=
       mul_pos htwoN (hp θ)
+    norm_num only [Nat.cast_mul, Nat.cast_ofNat] at hden
     dsimp [w, obstructionWeight, g, normalizedLogDerivative]
+    norm_num only [Nat.cast_mul, Nat.cast_ofNat]
     rw [sub_nonneg, div_le_iff₀ hden]
     dsimp [radialCoefficient] at hLie
+    norm_num only [Nat.cast_mul, Nat.cast_ofNat] at *
     nlinarith
 
   have hbase_coeff (n : ℤ) :
@@ -107,23 +120,63 @@ theorem fourierContradiction_of_log_bound
   rw [hnorm] at htriangle
   nlinarith
 
-/-- Main theorem item (3), in pointwise form.  The homogeneous degree is not
-assumed even or positive: both facts are derived from positive definiteness. -/
+/-- Compatibility form of `fourierContradiction_of_log_bound_awayFromZero`
+using the equivalent all-point Lie inequality. -/
+theorem fourierContradiction_of_log_bound
+    {P : BivariatePolynomial} {N : ℕ}
+    (hN : 0 < N)
+    (hhom : P.IsHomogeneous (2 * N))
+    (hpd : PositiveDefinite P)
+    (hlie : LieNonpositive P)
+    (hlog :
+      ‖realPaperFourierCoeff
+        (normalizedLogDerivative N (circleTrace P) (circleTraceDerivative P)) 2‖ < 1) :
+    False :=
+  fourierContradiction_of_log_bound_awayFromZero hN hhom hpd
+    ((lieNonpositive_iff_awayFromZero P).mp hlie) hlog
+
+/-- Main theorem item (3) with the punctured Lie inequality appearing in the
+paper's definition of a weak polynomial Lyapunov function. -/
+theorem no_positiveDefinite_homogeneous_polynomial_awayFromZero
+    (P : BivariatePolynomial) (hhom : Homogeneous P) (hpd : PositiveDefinite P) :
+    ¬ LieNonpositiveAwayFromZero P := by
+  intro hlie
+  obtain ⟨N, hN, hdegree⟩ := exists_positive_even_homogeneous_degree hhom hpd
+  exact fourierContradiction_of_log_bound_awayFromZero hN hdegree hpd hlie
+    (logarithmicSecondHarmonicBound hN hdegree hpd)
+
+/-- Compatibility form using the equivalent all-point Lie inequality.  The
+homogeneous degree is not assumed even or positive: both facts are derived from
+positive definiteness. -/
 theorem no_positiveDefinite_homogeneous_polynomial
     (P : BivariatePolynomial) (hhom : Homogeneous P) (hpd : PositiveDefinite P) :
     ¬ LieNonpositive P := by
   intro hlie
-  obtain ⟨N, hN, hdegree⟩ := exists_positive_even_homogeneous_degree hhom hpd
-  exact fourierContradiction_of_log_bound hN hdegree hpd hlie
-    (logarithmicSecondHarmonicBound hN hdegree hpd)
+  exact no_positiveDefinite_homogeneous_polynomial_awayFromZero P hhom hpd
+    ((lieNonpositive_iff_awayFromZero P).mp hlie)
 
-/-- Main theorem item (3), literally as a nonexistence statement over
-homogeneous polynomials of arbitrary degree. -/
+/-- Equivalent punctured form of main theorem item (3). -/
+theorem mainTheorem_item3_awayFromZero :
+    ¬ ∃ P : BivariatePolynomial,
+      Homogeneous P ∧ PositiveDefinite P ∧ LieNonpositiveAwayFromZero P := by
+  rintro ⟨P, hhom, hpd, hlie⟩
+  exact no_positiveDefinite_homogeneous_polynomial_awayFromZero P hhom hpd hlie
+
+/-- Main theorem item (3), literally as the manuscript states it: there is no
+positive definite homogeneous polynomial whose Lie derivative is
+nonpositive everywhere.  The degree is arbitrary here; positivity and
+evenness are derived inside the proof. -/
 theorem mainTheorem_item3 :
     ¬ ∃ P : BivariatePolynomial,
       Homogeneous P ∧ PositiveDefinite P ∧ LieNonpositive P := by
   rintro ⟨P, hhom, hpd, hlie⟩
   exact no_positiveDefinite_homogeneous_polynomial P hhom hpd hlie
+
+/-- Backwards-compatible name for the all-points statement. -/
+theorem mainTheorem_item3_allPoints :
+    ¬ ∃ P : BivariatePolynomial,
+      Homogeneous P ∧ PositiveDefinite P ∧ LieNonpositive P :=
+  mainTheorem_item3
 
 end
 

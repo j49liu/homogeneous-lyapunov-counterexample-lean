@@ -46,6 +46,11 @@ def lieDerivative (P : BivariatePolynomial) : BivariatePolynomial :=
 def LieNonpositive (P : BivariatePolynomial) : Prop :=
   ∀ z : Point, evalAt (lieDerivative P) z ≤ 0
 
+/-- The punctured weak Lie-derivative inequality in the paper's definition of a
+weak polynomial Lyapunov function. -/
+def LieNonpositiveAwayFromZero (P : BivariatePolynomial) : Prop :=
+  ∀ z : Point, z ≠ 0 → evalAt (lieDerivative P) z ≤ 0
+
 @[simp] theorem evalAt_X₀ (z : Point) : evalAt X₀ z = z 0 := by
   simp [evalAt, X₀]
 
@@ -59,6 +64,22 @@ def LieNonpositive (P : BivariatePolynomial) : Prop :=
 @[simp] theorem evalAt_field₂ (z : Point) :
     evalAt field₂ z = z 0 ^ 3 + 4 * z 0 ^ 2 * z 1 + z 0 * z 1 ^ 2 - 6 * z 1 ^ 3 := by
   simp [evalAt, field₂, X₀, X₁]
+
+/-- The radial polynomial identity used to derive the polar system in the
+paper: `x f₁(x,y) + y f₂(x,y) = 4x⁴ - 2x²y² - 6y⁴`. -/
+theorem radial_field_identity (z : Point) :
+    z 0 * evalAt field₁ z + z 1 * evalAt field₂ z =
+      4 * z 0 ^ 4 - 2 * z 0 ^ 2 * z 1 ^ 2 - 6 * z 1 ^ 4 := by
+  rw [evalAt_field₁, evalAt_field₂]
+  ring
+
+/-- The angular polynomial identity used to derive the polar system in the
+paper: `x f₂(x,y) - y f₁(x,y) = (x²+y²)²`. -/
+theorem angular_field_identity (z : Point) :
+    z 0 * evalAt field₂ z - z 1 * evalAt field₁ z =
+      (z 0 ^ 2 + z 1 ^ 2) ^ 2 := by
+  rw [evalAt_field₁, evalAt_field₂]
+  ring
 
 theorem field₁_isHomogeneous : field₁.IsHomogeneous 3 := by
   have hx : X₀.IsHomogeneous 1 := by simpa [X₀] using isHomogeneous_X ℝ (0 : Fin 2)
@@ -199,40 +220,82 @@ theorem euler_eval {P : BivariatePolynomial} {n : ℕ} (hP : P.IsHomogeneous n) 
   have h := congrArg (eval z) hP.sum_X_mul_pderiv
   simpa [evalAt, map_sum, nsmul_eq_mul] using h
 
-theorem field₁_on_circle (θ : ℝ) :
-    evalAt field₁ (circlePoint θ) =
-      radialCoefficient θ * Real.cos θ - Real.sin θ := by
-  rw [evalAt_field₁]
-  simp only [circlePoint, Matrix.cons_val_zero, Matrix.cons_val_one, radialCoefficient,
-    Real.cos_two_mul]
-  have hunit : 1 - Real.cos θ ^ 2 - Real.sin θ ^ 2 = 0 := by
-    nlinarith [Real.sin_sq_add_cos_sq θ]
-  calc
-    4 * Real.cos θ ^ 3 - Real.cos θ ^ 2 * Real.sin θ -
-          6 * Real.cos θ * Real.sin θ ^ 2 - Real.sin θ ^ 3 =
-        (-1 + 5 * (2 * Real.cos θ ^ 2 - 1)) * Real.cos θ - Real.sin θ +
-          (6 * Real.cos θ + Real.sin θ) *
-            (1 - Real.cos θ ^ 2 - Real.sin θ ^ 2) := by ring
-    _ = (-1 + 5 * (2 * Real.cos θ ^ 2 - 1)) * Real.cos θ - Real.sin θ := by
-      rw [hunit]
-      ring
-
-theorem field₂_on_circle (θ : ℝ) :
-    evalAt field₂ (circlePoint θ) =
-      radialCoefficient θ * Real.sin θ + Real.cos θ := by
-  rw [evalAt_field₂]
-  simp only [circlePoint, Matrix.cons_val_zero, Matrix.cons_val_one, radialCoefficient,
-    Real.cos_two_mul]
+/-- The manuscript's radial Cartesian identity restricted to the unit
+circle: `cos θ f₁ + sin θ f₂ = -1 + 5 cos(2θ)`. -/
+theorem radial_field_on_circle (θ : ℝ) :
+    Real.cos θ * evalAt field₁ (circlePoint θ) +
+        Real.sin θ * evalAt field₂ (circlePoint θ) =
+      radialCoefficient θ := by
+  have hrad := radial_field_identity (circlePoint θ)
+  simp only [circlePoint_zero, circlePoint_one] at hrad
+  rw [hrad]
+  simp only [radialCoefficient, Real.cos_two_mul]
   have hunit : Real.cos θ ^ 2 + Real.sin θ ^ 2 - 1 = 0 := by
     nlinarith [Real.sin_sq_add_cos_sq θ]
   calc
-    Real.cos θ ^ 3 + 4 * Real.cos θ ^ 2 * Real.sin θ +
-          Real.cos θ * Real.sin θ ^ 2 - 6 * Real.sin θ ^ 3 =
-        (-1 + 5 * (2 * Real.cos θ ^ 2 - 1)) * Real.sin θ + Real.cos θ +
-          (Real.cos θ - 6 * Real.sin θ) *
-            (Real.cos θ ^ 2 + Real.sin θ ^ 2 - 1) := by ring
-    _ = (-1 + 5 * (2 * Real.cos θ ^ 2 - 1)) * Real.sin θ + Real.cos θ := by
-      rw [hunit]
+    4 * Real.cos θ ^ 4 - 2 * Real.cos θ ^ 2 * Real.sin θ ^ 2 -
+          6 * Real.sin θ ^ 4 =
+        -1 + 5 * (2 * Real.cos θ ^ 2 - 1) +
+          (Real.cos θ ^ 2 + Real.sin θ ^ 2 - 1) *
+            (4 * Real.cos θ ^ 2 - 6 * Real.sin θ ^ 2 - 6) := by ring
+    _ = -1 + 5 * (2 * Real.cos θ ^ 2 - 1) := by rw [hunit, zero_mul, add_zero]
+
+/-- The manuscript's angular Cartesian identity restricted to the unit
+circle: `cos θ f₂ - sin θ f₁ = 1`. -/
+theorem angular_field_on_circle (θ : ℝ) :
+    Real.cos θ * evalAt field₂ (circlePoint θ) -
+        Real.sin θ * evalAt field₁ (circlePoint θ) = 1 := by
+  have hang := angular_field_identity (circlePoint θ)
+  simp only [circlePoint_zero, circlePoint_one] at hang
+  rw [hang]
+  have hunit : Real.cos θ ^ 2 + Real.sin θ ^ 2 = 1 := by
+    nlinarith [Real.sin_sq_add_cos_sq θ]
+  rw [hunit, one_pow]
+
+/-- Solving the manuscript's radial and angular identities for the first
+unit-circle field component. -/
+theorem field₁_on_circle (θ : ℝ) :
+    evalAt field₁ (circlePoint θ) =
+      radialCoefficient θ * Real.cos θ - Real.sin θ := by
+  have hrad := radial_field_on_circle θ
+  have hang := angular_field_on_circle θ
+  have hunit : Real.cos θ ^ 2 + Real.sin θ ^ 2 = 1 := by
+    nlinarith [Real.sin_sq_add_cos_sq θ]
+  calc
+    evalAt field₁ (circlePoint θ) =
+        (Real.cos θ ^ 2 + Real.sin θ ^ 2) *
+          evalAt field₁ (circlePoint θ) := by rw [hunit, one_mul]
+    _ = Real.cos θ *
+          (Real.cos θ * evalAt field₁ (circlePoint θ) +
+            Real.sin θ * evalAt field₂ (circlePoint θ)) -
+        Real.sin θ *
+          (Real.cos θ * evalAt field₂ (circlePoint θ) -
+            Real.sin θ * evalAt field₁ (circlePoint θ)) := by ring
+    _ = radialCoefficient θ * Real.cos θ - Real.sin θ := by
+      rw [hrad, hang]
+      ring
+
+/-- Solving the manuscript's radial and angular identities for the second
+unit-circle field component. -/
+theorem field₂_on_circle (θ : ℝ) :
+    evalAt field₂ (circlePoint θ) =
+      radialCoefficient θ * Real.sin θ + Real.cos θ := by
+  have hrad := radial_field_on_circle θ
+  have hang := angular_field_on_circle θ
+  have hunit : Real.cos θ ^ 2 + Real.sin θ ^ 2 = 1 := by
+    nlinarith [Real.sin_sq_add_cos_sq θ]
+  calc
+    evalAt field₂ (circlePoint θ) =
+        (Real.cos θ ^ 2 + Real.sin θ ^ 2) *
+          evalAt field₂ (circlePoint θ) := by rw [hunit, one_mul]
+    _ = Real.sin θ *
+          (Real.cos θ * evalAt field₁ (circlePoint θ) +
+            Real.sin θ * evalAt field₂ (circlePoint θ)) +
+        Real.cos θ *
+          (Real.cos θ * evalAt field₂ (circlePoint θ) -
+            Real.sin θ * evalAt field₁ (circlePoint θ)) := by ring
+    _ = radialCoefficient θ * Real.sin θ + Real.cos θ := by
+      rw [hrad, hang]
       ring
 
 theorem evalAt_lieDerivative (P : BivariatePolynomial) (z : Point) :
@@ -240,6 +303,36 @@ theorem evalAt_lieDerivative (P : BivariatePolynomial) (z : Point) :
       evalAt (pderiv 0 P) z * evalAt field₁ z +
       evalAt (pderiv 1 P) z * evalAt field₂ z := by
   simp [lieDerivative, evalAt, vectorField, Finset.univ_fin2]
+
+@[simp] theorem evalAt_lieDerivative_zero (P : BivariatePolynomial) :
+    evalAt (lieDerivative P) 0 = 0 := by
+  rw [evalAt_lieDerivative]
+  simp
+
+/-- For this vector field, whose value at the origin is zero, the paper's
+punctured Lie inequality is equivalent to the all-point formulation. -/
+theorem lieNonpositive_iff_awayFromZero (P : BivariatePolynomial) :
+    LieNonpositive P ↔ LieNonpositiveAwayFromZero P := by
+  constructor
+  · intro h z _hz
+    exact h z
+  · intro h z
+    by_cases hz : z = 0
+    · subst z
+      simp
+    · exact h z hz
+
+/-- The Lie derivative of a positive-degree homogeneous polynomial along the
+cubic field is homogeneous of degree two higher. -/
+theorem lieDerivative_isHomogeneous {P : BivariatePolynomial} {n : ℕ}
+    (hn : 0 < n) (hP : P.IsHomogeneous n) :
+    (lieDerivative P).IsHomogeneous (n + 2) := by
+  rw [lieDerivative]
+  apply IsHomogeneous.sum Finset.univ (fun i : Fin 2 ↦ pderiv i P * vectorField i) (n + 2)
+  intro i _hi
+  have hi := (hP.pderiv (i := i)).mul (vectorField_isHomogeneous i)
+  convert hi using 1
+  omega
 
 /-- Polar identity (4.2) at radius one, obtained from the chain rule and Euler's identity. -/
 theorem lieDerivative_on_circle {P : BivariatePolynomial} {n : ℕ}

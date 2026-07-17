@@ -50,6 +50,45 @@ theorem paperFourierCoeff_eq_integral (u : ℝ → ℂ) (n : ℤ) :
   push_cast
   ring
 
+/-- The Fourier-coefficient differentiation rule used in the manuscript.
+With the convention exp (-i n θ), differentiating a 2π-periodic function
+multiplies its mode n by i n. -/
+theorem paperFourierCoeff_derivative
+    {u du : ℝ → ℂ} (n : ℤ) (hn : n ≠ 0)
+    (hderiv : ∀ θ, HasDerivAt u (du θ) θ)
+    (hdu : Continuous du)
+    (hperiod : u (2 * Real.pi) = u 0) :
+    paperFourierCoeff du n =
+      I * (n : ℂ) * paperFourierCoeff u n := by
+  have hu : Continuous u :=
+    continuous_iff_continuousAt.mpr fun θ => (hderiv θ).continuousAt
+  have hparts := fourierCoeffOn_of_hasDeriv_right
+    (a := (0 : ℝ)) (b := 2 * Real.pi) Real.two_pi_pos hn
+    hu.continuousOn
+    (fun θ _ => (hderiv θ).hasDerivWithinAt)
+    (hdu.intervalIntegrable (0 : ℝ) (2 * Real.pi))
+  rw [hperiod, sub_self, mul_zero, zero_sub] at hparts
+  unfold paperFourierCoeff
+  rw [hparts]
+  have hnC : (n : ℂ) ≠ 0 := by exact_mod_cast hn
+  field_simp [hnC, Real.pi_ne_zero]
+  push_cast
+  ring
+
+/-- Real-valued specialization of the Fourier differentiation rule. -/
+theorem realPaperFourierCoeff_derivative
+    {u du : ℝ → ℝ} (n : ℤ) (hn : n ≠ 0)
+    (hderiv : ∀ θ, HasDerivAt u (du θ) θ)
+    (hdu : Continuous du)
+    (hperiod : u (2 * Real.pi) = u 0) :
+    realPaperFourierCoeff du n =
+      I * (n : ℂ) * realPaperFourierCoeff u n := by
+  apply paperFourierCoeff_derivative n hn
+  · intro θ
+    exact (hderiv θ).ofReal_comp
+  · exact Complex.continuous_ofReal.comp hdu
+  · exact congrArg Complex.ofReal hperiod
+
 /-- Doubling the angular variable sends Fourier mode one to mode two.  This
 records explicitly the change of variables used by the paper's half-angle
 substitution, including the `1 / (2π)` normalization. -/
@@ -160,6 +199,17 @@ theorem realPaperFourierCoeff_add (u v : ℝ → ℝ)
     paperFourierCoeff_add (fun θ ↦ (u θ : ℂ)) (fun θ ↦ (v θ : ℂ))
       (by fun_prop) (by fun_prop) n
 
+/-- Fourier coefficients commute with finite sums of continuous functions. -/
+theorem paperFourierCoeff_finset_sum {J : Type*} [Fintype J]
+    (u : J → ℝ → ℂ) (hu : ∀ j, Continuous (u j)) (n : ℤ) :
+    paperFourierCoeff (fun theta => ∑ j, u j theta) n =
+      ∑ j, paperFourierCoeff (u j) n := by
+  simp_rw [paperFourierCoeff_eq_integral, Finset.sum_mul]
+  rw [intervalIntegral.integral_finsetSum]
+  · rw [Finset.mul_sum]
+  · intro j _
+    exact ((hu j).mul (by fun_prop)).intervalIntegrable _ _
+
 theorem paperFourierCoeff_sub (u v : ℝ → ℂ)
     (hu : Continuous u) (hv : Continuous v) (n : ℤ) :
     paperFourierCoeff (fun θ ↦ u θ - v θ) n =
@@ -213,6 +263,18 @@ theorem paperFourierCoeff_fourier (k n : ℤ) :
       (Pi.single k (1 : ℂ) : ℤ → ℂ) n := by
   rw [paperFourierCoeff_coe_addCircle]
   exact congrFun (fourierCoeff_fourier (T := 2 * Real.pi) k) n
+
+/-- With period `2π`, mathlib's Fourier monomial is exactly `exp(i k θ)`.
+This is the sign bridge between the manuscript's displayed finite expansion
+and `paperFourierCoeff`, whose kernel is `exp(-i n θ)`. -/
+theorem exp_int_mul_I_eq_fourier (k : ℤ) (theta : ℝ) :
+    Complex.exp ((k : ℂ) * (theta : ℂ) * I) =
+      fourier k (theta : AddCircle (2 * Real.pi)) := by
+  rw [fourier_coe_apply]
+  congr 1
+  field_simp [Real.pi_ne_zero]
+  push_cast
+  ring
 
 theorem paperFourierCoeff_one (n : ℤ) :
     paperFourierCoeff (fun _ : ℝ ↦ (1 : ℂ)) n = if n = 0 then 1 else 0 := by
