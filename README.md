@@ -163,3 +163,9 @@ conjugate-reflection remains where the manuscript itself uses the
 self-inversive identity and `B#`.
 `#print axioms mainTheorem_item3` audits this composed proof, not merely
 separate manuscript-facing refinements.
+
+## License
+
+Copyright 2026 Jun Liu.
+
+This project is licensed under the [Apache License 2.0](LICENSE).
