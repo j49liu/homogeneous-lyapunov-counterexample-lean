@@ -1,8 +1,8 @@
-# Lean formalization of a Lyapunov certificate and polynomial obstruction
+# Lean formalization of a Lyapunov certificate and obstructions
 
 ## Overview
 
-This Lean 4/mathlib repository formalizes items (2) and (3) of the main theorem
+This Lean 4/mathlib repository formalizes items (2), (3), and (4) of the main theorem
 in the paper [1].  For the explicit cubic vector field studied there, item (2)
 constructs the Lyapunov certificate
 
@@ -22,6 +22,13 @@ Item (3) states that no positive definite homogeneous polynomial has an
 everywhere nonpositive Lie derivative.  Its formalization includes the strict
 Fejér--Riesz factorization, logarithmic second-harmonic bound, and final
 Fourier-coefficient contradiction used to prove that obstruction.
+
+Item (4) states that no real-analytic function on a neighbourhood of the
+origin satisfies the corresponding punctured local positivity and weak Lie
+inequalities.  Its formalization extracts the first nonzero homogeneous Taylor
+term, proves the manuscript's ray and Lie-derivative asymptotics, applies the
+manuscript's integrating-factor argument to make that term positive definite,
+and invokes item (3).
 
 The ODE-level global asymptotic stability assertion in main theorem item (1)
 is not formalized in this repository.
@@ -43,9 +50,10 @@ lake build
 lake env lean HomogeneousObstruction.lean
 ```
 
-The second command runs the top-level theorem file and executes both
-`#print axioms mainTheorem_item2` and
-`#print axioms mainTheorem_item3`.
+The second command runs the top-level theorem file and executes
+`#print axioms mainTheorem_item2`,
+`#print axioms mainTheorem_item3`, and
+`#print axioms mainTheorem_item4`.
 
 ## Map from the paper to Lean
 
@@ -218,11 +226,49 @@ The second command runs the top-level theorem file and executes both
   paper's all-points formulation, together with the equivalent punctured
   formulation `mainTheorem_item3_awayFromZero`.
 
+- `HomogeneousObstruction/LocalAnalyticCalculus.lean` proves the two calculus
+  bridges used in item (4): cubic scaling of the evaluated vector field and
+  equality between the Fréchet-derivative Lie derivative of a polynomial
+  function and the `MvPolynomial.pderiv` definition.  It also defines
+  `euclideanNorm z = sqrt(x²+y²)`, which is used explicitly in the exported
+  local-ball conditions so that the norm agrees literally with the manuscript.
+
+- `HomogeneousObstruction/AnalyticLeadingTerm.lean` formalizes the Taylor
+  expansion and ray-limit paragraphs of the manuscript's local analytic
+  obstruction.  It expands the diagonal of a continuous multilinear Taylor
+  coefficient as an explicit bivariate homogeneous polynomial, chooses the
+  least coefficient that is nonzero on the diagonal, and proves
+
+  ```text
+  V(tx) / t^m → P_m(x),
+  L_f V(tx) / t^(m+2) → L_f P_m(x)       as t ↓0+.
+  ```
+
+  The derivative remainder is justified by differentiating a finite
+  truncation of mathlib's Fréchet power series.  This proves the manuscript's
+  `o(t^(m+2))` assertion without assuming it.
+
+- `HomogeneousObstruction/LeadingTermPositivity.lean` formalizes the final
+  integrating-factor paragraph for item (4).  From `P_m ≥0`,
+  `L_f P_m ≤0`, positive degree, and nonzeroness, it proves that the circle
+  trace cannot vanish.  It uses the manuscript's basepoint-normalized
+  integrating factor, evaluating the displayed integral by its explicit
+  elementary antiderivative.
+
+- `HomogeneousObstruction/LocalAnalyticObstruction.lean` assembles these steps,
+  invokes item (3), and exports `mainTheorem_item4`.  The exported statement
+  explicitly quantifies an open set `U` containing the origin, assumes
+  `AnalyticOnNhd ℝ V U`, and requires the Euclidean `ρ`-ball to lie in `U`.
+  Lean represents the function on `U` by a total representative, but every
+  assumption is local to `U`, so its values outside `U` are irrelevant.  The
+  stronger germ-level engine is retained as `mainTheorem_item4_germ`.
+
 ## Integration status
 
-The top-level file imports the complete item (2) certificate proof and item
-(3) obstruction proof, and audits the exported theorems
-`mainTheorem_item2` and `mainTheorem_item3` separately.  For item (2), the
+The top-level file imports the complete item (2) certificate proof, item (3)
+polynomial obstruction, and item (4) local real-analytic obstruction, and
+audits `mainTheorem_item2`, `mainTheorem_item3`, and `mainTheorem_item4`
+separately.  For item (2), the
 canonical theorem is exported by `StabilityCertificateManuscript.lean`.  Its
 active dependency path follows the manuscript architecture: polar
 point representation, bounds, and two-homogeneity; the polar velocity-curve
@@ -252,6 +298,18 @@ conjugate-reflection remains where the manuscript itself uses the
 self-inversive identity and `B#`.
 `#print axioms mainTheorem_item3` audits this composed proof, not merely
 separate manuscript-facing refinements.
+
+For item (4), `mainTheorem_item4` follows the manuscript's proof architecture:
+the first nonzero homogeneous Taylor term is extracted; positivity and the
+weak Lie inequality are passed to it along rays; the same angular differential
+inequality and integrating factor propagate any circle zero; and item (3)
+supplies the contradiction.  The formal proof makes the Taylor and derivative
+remainders explicit through mathlib's convergent Fréchet power-series API.
+Its statement exposes the manuscript's open neighbourhood, analyticity on
+that neighbourhood, and the contained Euclidean local ball; the underlying
+germ theorem is then applied at the origin.
+`#print axioms mainTheorem_item4` reports only `propext`,
+`Classical.choice`, and `Quot.sound`.
 
 ## License
 
