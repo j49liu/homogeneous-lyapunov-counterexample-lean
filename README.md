@@ -2,41 +2,91 @@
 
 ## Overview
 
-This Lean 4/mathlib repository formalizes all four items of the main theorem
-in the paper [1].  For the explicit cubic vector field studied there, item (2)
-constructs the Lyapunov certificate
+This Lean 4/mathlib repository formalizes the main theorem of the paper [1].
+The paper studies the planar autonomous system `ż = f(z)`, with `z = (x,y)`,
+defined by the explicit vector field
 
 ```text
-H(x,y) = (x²+y²) exp(-10xy/(x²+y²)),    H(0,0) = 0,
+ẋ = f₁(x,y) = 4x³ - x²y - 6xy² - y³,
+ẏ = f₂(x,y) =  x³ + 4x²y +  xy² - 6y³.
 ```
 
-and proves its two-sided quadratic bounds, positive definiteness, radial
-unboundedness, positive-scalar 2-homogeneity, global `C¹` regularity,
-`C∞` regularity off the origin, and the exact identity
+Both components are homogeneous cubic polynomials with integer coefficients:
+`f(λz) = λ³f(z)` for every positive scalar `λ`.
+
+### What the example disproves
+
+The homogeneous polynomial Lyapunov converse conjecture asserted that every
+globally asymptotically stable homogeneous polynomial vector field admits a
+homogeneous polynomial Lyapunov function.  The vector field above is a
+counterexample.  Its origin is globally asymptotically stable, but there is no
+positive definite homogeneous polynomial `P` whose Lie derivative
 
 ```text
-L_f H(x,y) = -2(x²+y²)H(x,y) < 0    for (x,y) ≠ (0,0).
+L_f P(z) = ∇P(z) · f(z)
 ```
 
-Item (3) states that no positive definite homogeneous polynomial has an
-everywhere nonpositive Lie derivative.  Its formalization includes the strict
-Fejér--Riesz factorization, logarithmic second-harmonic bound, and final
-Fourier-coefficient contradiction used to prove that obstruction.
+is nonpositive away from the origin.  The result is stronger still: the field
+has no real-analytic weak Lyapunov function even locally around the origin.
+This does not contradict Lyapunov converse theory, because the system does
+admit the explicit globally `C¹`, nonanalytic certificate in item (2) below.
 
-Item (4) states that no real-analytic function on a neighbourhood of the
-origin satisfies the corresponding punctured local positivity and weak Lie
-inequalities.  Its formalization extracts the first nonzero homogeneous Taylor
-term, proves the manuscript's ray and Lie-derivative asymptotics, applies the
-manuscript's integrating-factor argument to make that term positive definite,
-and invokes item (3).
+### Main theorem
 
-Item (1) proves that the origin is globally asymptotically stable in the
-standard forward-trajectory sense: every initial state has a solution on the
-whole nonnegative time ray, the origin is Lyapunov stable, and every such
-trajectory converges to the origin.  The proof uses the explicit certificate
-from item (2), together with a self-contained smooth-cutoff continuation
-argument because mathlib provides local Picard--Lindelof existence but no
-ready-made bounded-trajectory continuation theorem.
+For the vector field displayed above, the four parts of the main theorem are:
+
+1. **Global asymptotic stability.** The origin is globally asymptotically
+   stable.  Every initial state admits a solution on the whole nonnegative
+   time ray, the origin is Lyapunov stable, and every forward solution
+   converges to the origin.
+
+2. **An explicit nonpolynomial Lyapunov certificate.** Define
+
+   ```text
+   H(x,y) = (x²+y²) exp(-10xy/(x²+y²)),    H(0,0) = 0,
+   ```
+
+   Then `H` is positive definite, radially unbounded, positively
+   `2`-homogeneous, globally `C¹`, and `C∞` away from the origin.  It satisfies
+   the two-sided bounds
+
+   ```text
+   exp(-5)(x²+y²) ≤ H(x,y) ≤ exp(5)(x²+y²)
+   ```
+
+   and the exact strict Lie-derivative identity
+
+   ```text
+   L_f H(x,y) = -2(x²+y²)H(x,y) < 0    for (x,y) ≠ (0,0).
+   ```
+
+3. **Homogeneous-polynomial obstruction.** No positive definite homogeneous
+   polynomial `P` satisfies `L_f P ≤ 0`.  Thus the system has no homogeneous
+   polynomial Lyapunov function, even under the weak nonpositive derivative
+   condition.
+
+4. **Local real-analytic obstruction.** There is no real-analytic function
+   `V` on any neighbourhood of the origin for which, for some `ρ > 0`,
+
+   ```text
+   V(0) = 0,
+   V(z) > 0       when 0 < ‖z‖₂ < ρ,
+   L_f V(z) ≤ 0   when 0 < ‖z‖₂ < ρ.
+   ```
+
+The Lean proof of item (1) uses the certificate from item (2) and includes a
+self-contained smooth-cutoff continuation argument, since mathlib provides
+local Picard--Lindelöf existence but no ready-made bounded-trajectory
+continuation theorem.
+
+The formalization of item (3) includes the strict Fejér--Riesz factorization,
+logarithmic second-harmonic bound, and final Fourier-coefficient contradiction
+used to prove that obstruction.
+
+For item (4), Lean extracts the first nonzero homogeneous Taylor term, proves
+the manuscript's ray and Lie-derivative asymptotics, applies the manuscript's
+integrating-factor argument to make that term positive definite, and invokes
+item (3).
 
 ## Reference
 
