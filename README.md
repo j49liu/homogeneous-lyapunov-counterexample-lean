@@ -1,15 +1,20 @@
 # Lean formalization of the homogeneous-polynomial obstruction
 
-This Lean 4/mathlib project formalizes the homogeneous-polynomial obstruction
-proof in:
+## Overview
 
-> Jun Liu and Maxwell Fitzsimmons, *A Globally Asymptotically Stable Planar
-> Homogeneous Polynomial Vector Field With No Polynomial Lyapunov Function*.
+This Lean 4/mathlib repository formalizes item (3) of the main theorem in
+the paper [1].  For the explicit cubic vector field studied there, the result
+states that no positive definite homogeneous polynomial has an everywhere
+nonpositive Lie derivative.  The formalization includes the strict
+Fejér--Riesz factorization, logarithmic second-harmonic bound, and final
+Fourier-coefficient contradiction used to prove that obstruction.
 
-The manuscript has been submitted to the *IEEE Transactions on Automatic
-Control* (IEEE TAC).  The target is item (3) of its main theorem: for the
-explicit cubic vector field in the paper, no positive definite homogeneous
-polynomial has an everywhere nonpositive Lie derivative.
+## Reference
+
+[1] Jun Liu and Maxwell Fitzsimmons, *A Globally Asymptotically Stable Planar
+Homogeneous Polynomial Vector Field With No Polynomial Lyapunov Function*.
+Manuscript submitted to the *IEEE Transactions on Automatic Control* (IEEE
+TAC).
 
 The project is pinned to Lean `v4.30.0` and mathlib `v4.30.0`; the resolved
 mathlib revision is recorded in `lake-manifest.json`.
@@ -21,10 +26,10 @@ lake build
 lake env lean HomogeneousObstruction.lean
 ```
 
-The second command runs the manuscript theorem file and prints the axioms of
+The second command runs the top-level theorem file and prints the axioms of
 the final exported theorem.
 
-## Map from the manuscript to Lean
+## Map from the paper to Lean
 
 - `HomogeneousObstruction/Basic.lean` encodes the paper's cubic vector field as
   `field₁`, `field₂`, and `vectorField`; represents real bivariate
