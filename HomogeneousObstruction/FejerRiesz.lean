@@ -1,4 +1,8 @@
-import HomogeneousObstruction.Basic
+import Mathlib.Algebra.Polynomial.Reverse
+import Mathlib.Algebra.Polynomial.Roots
+import Mathlib.Analysis.Complex.Polynomial.Basic
+import Mathlib.Analysis.SpecialFunctions.Complex.CircleMap
+import Mathlib.Tactic
 
 namespace HomogeneousObstruction
 

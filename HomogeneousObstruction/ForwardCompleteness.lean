@@ -119,9 +119,9 @@ private theorem exists_segment_norm_eq
     (intermediate_value_Icc (show (0 : ℝ) ≤ 1 by norm_num) hq.continuousOn hR)
   exact ⟨u, hu, huR⟩
 
-/-- A locally Lipschitz map that vanishes on and outside a sphere is globally
-Lipschitz once it is Lipschitz on the enclosed closed ball. -/
-private theorem lipschitzWith_of_lipschitzOn_closedBall_of_zero_outside
+/-- A map that is Lipschitz on a closed ball and vanishes on and outside its
+boundary is globally Lipschitz with the same constant. -/
+theorem lipschitzWith_of_lipschitzOn_closedBall_of_zero_outside
     {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F]
     {g : E → F} {R : ℝ} {K : ℝ≥0}
@@ -217,7 +217,9 @@ theorem cutoffField_exists_global_integralCurve
 
 /-- A bump whose inner ball is large enough to contain the full Lyapunov
 sublevel set through `z₀`.  The deliberately generous radius avoids square
-roots in the continuation argument. -/
+roots in the continuation argument.  The bump uses `Point`'s ambient sup
+norm; the explicit comparison with `radiusSquared` below bridges this to the
+Euclidean norm used in the GAS statement. -/
 def trajectoryCutoff (z₀ : Point) : ContDiffBump (0 : Point) where
   rIn := 2 * Real.exp 5 * stabilityCertificate z₀ + 1
   rOut := 2 * Real.exp 5 * stabilityCertificate z₀ + 2
@@ -235,7 +237,8 @@ private theorem cutoff_certificate_comp_hasDerivAt
         (-2 * radiusSquared (γ t) * stabilityCertificate (γ t))) t := by
   have hH : HasFDerivAt stabilityCertificate
       (fderiv ℝ stabilityCertificate (γ t)) (γ t) :=
-    (stabilityCertificate_contDiff_one.differentiable (by norm_num) (γ t)).hasFDerivAt
+    (stabilityCertificate_contDiff_one_via_homogeneous_cone.differentiable
+      (by norm_num) (γ t)).hasFDerivAt
   have hγt : HasDerivAt γ (cutoffField b (γ t)) t := by
     simpa using hγ t
   have hvalue :
@@ -282,7 +285,7 @@ theorem trajectoryCutoff_eq_one
   have hHt : stabilityCertificate (γ t) ≤ stabilityCertificate z₀ := by
     rw [← hγ0]
     exact hanti ht
-  have hlower := stabilityCertificate_lower_bound (γ t)
+  have hlower := (stabilityCertificate_bounds_via_polar (γ t)).1
   have hexp : 0 < Real.exp 5 := Real.exp_pos _
   have hcancel : Real.exp 5 * Real.exp (-5) = 1 := by
     rw [← Real.exp_add]

@@ -1,4 +1,4 @@
-# Lean formalization of a Lyapunov certificate and obstructions
+# Lean 4 formalization of a globally asymptotically stable planar homogeneous cubic vector field with no polynomial Lyapunov function
 
 ## Overview
 
@@ -63,14 +63,22 @@ The second command runs the top-level theorem file and executes
 
 ## Map from the paper to Lean
 
+- `HomogeneousObstruction/LyapunovDirectMethod.lean` is the reusable,
+  field-independent core of item (1).  For autonomous ODEs on an arbitrary
+  real normed space, it defines forward trajectories, forward completeness,
+  Lyapunov stability, global attractivity, and global asymptotic stability,
+  parameterized by a caller-supplied distance.  It also proves reusable
+  quadratic-comparison stability and attraction lemmas and the scalar
+  finite-entry lemma for a nonnegative quantity whose derivative is uniformly
+  negative above a positive level.
+
 - `HomogeneousObstruction/LyapunovGAS.lean` formalizes the textbook
   epsilon--delta Lyapunov-direct-method argument used in the last sentence of
-  the manuscript's stability subsection.  It defines forward trajectories,
-  forward completeness, Lyapunov stability, global attractivity, and global
-  asymptotic stability using the manuscript's Euclidean norm.  From the
-  certificate bounds and `L_f H = -2(x²+y²)H`, it proves stability and global
-  attractivity for every forward trajectory, conditional on forward
-  completeness.
+  the manuscript's stability subsection.  It specializes the reusable core
+  to the manuscript's Euclidean norm and explicit cubic field.  From the
+  manuscript-route polar certificate bounds, cone-tip `C¹` result, and
+  `L_f H = -2(x²+y²)H`, it proves stability and global attractivity for every
+  forward trajectory, conditional on forward completeness.
 
 - `HomogeneousObstruction/ForwardCompleteness.lean` supplies that missing
   forward-completeness step for the explicit cubic field.  It proves a
@@ -86,7 +94,8 @@ The second command runs the top-level theorem file and executes
   stable.
 
 - `HomogeneousObstruction/StabilityCertificate.lean` defines the explicit
-  certificate `stabilityCertificate`, the squared radius, and the
+  certificate `stabilityCertificate`, the squared radius, the common
+  `euclideanNorm z = sqrt(x²+y²)`, and the
   function-level notions of positive definiteness, radial unboundedness, and
   positive-scalar 2-homogeneity used in item (2).  It proves
 
@@ -199,7 +208,9 @@ The second command runs the top-level theorem file and executes
   Fejér--Riesz machinery and interfaces: reciprocal-conjugate root pairing
   with multiplicities, exclusion of unit-circle roots, separation of inside
   and outside roots, and the product/polynomial data structures with their
-  degree, zero-free, and squared-norm consequences.
+  degree, zero-free, and squared-norm consequences.  It imports only focused
+  mathlib polynomial/complex modules rather than the paper's vector-field
+  module, so the machinery can be reused independently.
 
 - `HomogeneousObstruction/StrictTrigonometricFactorization.lean` exposes the
   intermediate objects written in the manuscript.  It defines `manuscriptB`
@@ -229,7 +240,8 @@ The second command runs the top-level theorem file and executes
   including the sign and normalization.  It proves the coefficients of the
   constant function and `cos(2θ)`, the zero mean of the real logarithmic
   derivative, and the elementary nonnegative-function estimate used for
-  `w`.
+  `w`.  This module likewise depends only on focused mathlib Fourier/calculus
+  imports and is independent of the explicit vector field.
 
 - `HomogeneousObstruction/LogSeries.lean` formalizes the literal logarithmic
   series step in the manuscript.  It defines the positive- and
@@ -257,9 +269,9 @@ The second command runs the top-level theorem file and executes
 - `HomogeneousObstruction/LocalAnalyticCalculus.lean` proves the two calculus
   bridges used in item (4): cubic scaling of the evaluated vector field and
   equality between the Fréchet-derivative Lie derivative of a polynomial
-  function and the `MvPolynomial.pderiv` definition.  It also defines
-  `euclideanNorm z = sqrt(x²+y²)`, which is used explicitly in the exported
-  local-ball conditions so that the norm agrees literally with the manuscript.
+  function and the `MvPolynomial.pderiv` definition.  The exported local-ball
+  conditions use the common `euclideanNorm` from `StabilityCertificate.lean`,
+  so their norm agrees literally with the manuscript.
 
 - `HomogeneousObstruction/AnalyticLeadingTerm.lean` formalizes the Taylor
   expansion and ray-limit paragraphs of the manuscript's local analytic

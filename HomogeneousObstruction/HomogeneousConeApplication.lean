@@ -109,35 +109,21 @@ theorem exists_euclideanUnitCircle_fderiv_bound :
   exact ⟨‖fderiv ℝ stabilityCertificate u‖, norm_nonneg _,
     fun z hz ↦ hmax hz⟩
 
-/-- Euclidean radius corresponding to `radiusSquared`. -/
-def euclideanRadius (z : Point) : ℝ := Real.sqrt (radiusSquared z)
-
-theorem euclideanRadius_nonneg (z : Point) : 0 ≤ euclideanRadius z :=
-  Real.sqrt_nonneg _
-
-theorem euclideanRadius_pos {z : Point} (hz : z ≠ 0) :
-    0 < euclideanRadius z := by
-  exact Real.sqrt_pos.2 (radiusSquared_pos hz)
-
-@[simp] theorem euclideanRadius_sq (z : Point) :
-    euclideanRadius z ^ 2 = radiusSquared z := by
-  exact Real.sq_sqrt (radiusSquared_nonneg z)
-
 /-- Normalizing a nonzero point by its Euclidean radius lands on the unit
 circle. -/
-theorem inv_euclideanRadius_smul_mem_unitCircle
+theorem inv_euclideanNorm_smul_mem_unitCircle
     {z : Point} (hz : z ≠ 0) :
-    (euclideanRadius z)⁻¹ • z ∈ euclideanUnitCircle := by
-  have hr : euclideanRadius z ≠ 0 := ne_of_gt (euclideanRadius_pos hz)
+    (euclideanNorm z)⁻¹ • z ∈ euclideanUnitCircle := by
+  have hr : euclideanNorm z ≠ 0 := ne_of_gt (euclideanNorm_pos hz)
   simp only [euclideanUnitCircle, mem_setOf_eq, radiusSquared_smul]
-  rw [← euclideanRadius_sq z]
+  rw [← euclideanNorm_sq z]
   field_simp
 
 /-- A point is its Euclidean radius times its unit-circle normalization. -/
-theorem euclideanRadius_smul_inv_euclideanRadius_smul
+theorem euclideanNorm_smul_inv_euclideanNorm_smul
     {z : Point} (hz : z ≠ 0) :
-    euclideanRadius z • ((euclideanRadius z)⁻¹ • z) = z := by
-  have hr : euclideanRadius z ≠ 0 := ne_of_gt (euclideanRadius_pos hz)
+    euclideanNorm z • ((euclideanNorm z)⁻¹ • z) = z := by
+  have hr : euclideanNorm z ≠ 0 := ne_of_gt (euclideanNorm_pos hz)
   rw [smul_smul]
   simp [hr]
 
@@ -148,16 +134,16 @@ private theorem coordinate_abs_le_norm (z : Point) (i : Fin 2) :
 /-- Equivalence of the manuscript's Euclidean radius with the ambient product
 norm, in the one direction needed to transport the unit-circle derivative
 bound.  The non-sharp constant `2` keeps the cone-tip estimate elementary. -/
-theorem euclideanRadius_le_two_norm (z : Point) :
-    euclideanRadius z ≤ 2 * ‖z‖ := by
+theorem euclideanNorm_le_two_norm (z : Point) :
+    euclideanNorm z ≤ 2 * ‖z‖ := by
   have hx := coordinate_abs_le_norm z 0
   have hy := coordinate_abs_le_norm z 1
   have hx_sq : z 0 ^ 2 ≤ ‖z‖ ^ 2 := by
     nlinarith [sq_abs (z 0), abs_nonneg (z 0), norm_nonneg z]
   have hy_sq : z 1 ^ 2 ≤ ‖z‖ ^ 2 := by
     nlinarith [sq_abs (z 1), abs_nonneg (z 1), norm_nonneg z]
-  have hr_sq := euclideanRadius_sq z
-  have hr_nonneg := euclideanRadius_nonneg z
+  have hr_sq := euclideanNorm_sq z
+  have hr_nonneg := euclideanNorm_nonneg z
   simp only [radiusSquared] at hr_sq
   nlinarith [norm_nonneg z]
 
@@ -171,25 +157,25 @@ theorem exists_fderiv_stabilityCertificate_linear_bound_from_unitCircle :
     exists_euclideanUnitCircle_fderiv_bound
   refine ⟨2 * M, mul_nonneg (by norm_num) hM_nonneg, ?_⟩
   intro z hz
-  let u : Point := (euclideanRadius z)⁻¹ • z
+  let u : Point := (euclideanNorm z)⁻¹ • z
   have hu : u ∈ euclideanUnitCircle := by
-    simpa only [u] using inv_euclideanRadius_smul_mem_unitCircle hz
-  have hr_pos : 0 < euclideanRadius z := euclideanRadius_pos hz
-  have hz_ray : euclideanRadius z • u = z := by
-    simpa only [u] using euclideanRadius_smul_inv_euclideanRadius_smul hz
+    simpa only [u] using inv_euclideanNorm_smul_mem_unitCircle hz
+  have hr_pos : 0 < euclideanNorm z := euclideanNorm_pos hz
+  have hz_ray : euclideanNorm z • u = z := by
+    simpa only [u] using euclideanNorm_smul_inv_euclideanNorm_smul hz
   have hscale :=
-    fderiv_stabilityCertificate_pos_smul (euclideanRadius z) hr_pos u
+    fderiv_stabilityCertificate_pos_smul (euclideanNorm z) hr_pos u
   rw [hz_ray] at hscale
   calc
     ‖fderiv ℝ stabilityCertificate z‖ =
-        ‖euclideanRadius z • fderiv ℝ stabilityCertificate u‖ := by
+        ‖euclideanNorm z • fderiv ℝ stabilityCertificate u‖ := by
       rw [hscale]
-    _ = euclideanRadius z * ‖fderiv ℝ stabilityCertificate u‖ := by
+    _ = euclideanNorm z * ‖fderiv ℝ stabilityCertificate u‖ := by
       rw [norm_smul, Real.norm_eq_abs, abs_of_pos hr_pos]
-    _ ≤ euclideanRadius z * M :=
+    _ ≤ euclideanNorm z * M :=
       mul_le_mul_of_nonneg_left (hM u hu) (le_of_lt hr_pos)
     _ ≤ (2 * ‖z‖) * M :=
-      mul_le_mul_of_nonneg_right (euclideanRadius_le_two_norm z) hM_nonneg
+      mul_le_mul_of_nonneg_right (euclideanNorm_le_two_norm z) hM_nonneg
     _ = (2 * M) * ‖z‖ := by ring
 
 private theorem radiusSquared_le_two_norm_sq_from_coordinates (z : Point) :

@@ -1,4 +1,6 @@
-import HomogeneousObstruction.Basic
+import Mathlib.Analysis.Fourier.AddCircle
+import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import Mathlib.Tactic
 
 namespace HomogeneousObstruction
 

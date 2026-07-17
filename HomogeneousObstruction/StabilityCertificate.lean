@@ -208,6 +208,47 @@ theorem radiusSquared_nonneg (z : Point) : 0 ≤ radiusSquared z := by
 theorem radiusSquared_pos {z : Point} (hz : z ≠ 0) : 0 < radiusSquared z := by
   exact lt_of_le_of_ne (radiusSquared_nonneg z) (Ne.symm (mt (radiusSquared_eq_zero_iff z).mp hz))
 
+/-- The Euclidean norm used throughout the manuscript.  `Point` is
+implemented as a finite function type, whose inherited mathlib norm is the
+sup norm, so the manuscript's `sqrt (x²+y²)` is named explicitly. -/
+def euclideanNorm (z : Point) : ℝ :=
+  Real.sqrt (radiusSquared z)
+
+@[simp] theorem euclideanNorm_zero : euclideanNorm 0 = 0 := by
+  simp [euclideanNorm, radiusSquared]
+
+theorem euclideanNorm_nonneg (z : Point) : 0 ≤ euclideanNorm z :=
+  Real.sqrt_nonneg _
+
+theorem euclideanNorm_pos {z : Point} (hz : z ≠ 0) : 0 < euclideanNorm z := by
+  exact Real.sqrt_pos.2 (radiusSquared_pos hz)
+
+@[simp] theorem euclideanNorm_pos_iff (z : Point) :
+    0 < euclideanNorm z ↔ z ≠ 0 := by
+  constructor
+  · intro h hz
+    subst z
+    simp at h
+  · exact euclideanNorm_pos
+
+theorem euclideanNorm_continuous : Continuous euclideanNorm := by
+  unfold euclideanNorm radiusSquared
+  fun_prop
+
+@[simp] theorem euclideanNorm_sq (z : Point) :
+    euclideanNorm z ^ 2 = radiusSquared z := by
+  exact Real.sq_sqrt (radiusSquared_nonneg z)
+
+@[simp] theorem euclideanNorm_eq_zero_iff (z : Point) :
+    euclideanNorm z = 0 ↔ z = 0 := by
+  constructor
+  · intro h
+    rw [euclideanNorm, Real.sqrt_eq_zero'] at h
+    exact (radiusSquared_eq_zero_iff z).mp
+      (le_antisymm h (radiusSquared_nonneg z))
+  · rintro rfl
+    exact euclideanNorm_zero
+
 @[simp] theorem radiusSquared_smul (a : ℝ) (z : Point) :
     radiusSquared (a • z) = a ^ 2 * radiusSquared z := by
   simp only [radiusSquared, Pi.smul_apply, smul_eq_mul]
@@ -263,7 +304,7 @@ theorem stabilityCertificate_positiveDefinite :
     FunctionPositiveDefinite stabilityCertificate := by
   exact ⟨stabilityCertificate_zero, fun _ hz ↦ stabilityCertificate_pos hz⟩
 
-/-- Comparison of the paper's Euclidean radius with the ambient product norm.
+/-- Comparison of the paper's Euclidean radius with the ambient sup norm.
 This is used only to express radial unboundedness with the standard cocompact
 filter; the sharp constant is irrelevant. -/
 theorem half_norm_sq_le_radiusSquared (z : Point) :

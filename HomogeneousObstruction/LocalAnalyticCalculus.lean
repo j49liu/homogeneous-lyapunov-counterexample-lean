@@ -14,30 +14,6 @@ namespace HomogeneousObstruction
 
 noncomputable section
 
-/-- The Euclidean norm used by the manuscript.  `Point` is implemented as a
-finite function type, whose inherited mathlib norm is the product norm, so we
-name the manuscript's `sqrt (x²+y²)` explicitly in the item-(4) statement. -/
-def euclideanNorm (z : Point) : ℝ :=
-  Real.sqrt (radiusSquared z)
-
-@[simp] theorem euclideanNorm_zero : euclideanNorm 0 = 0 := by
-  simp [euclideanNorm, radiusSquared]
-
-theorem euclideanNorm_pos {z : Point} (hz : z ≠ 0) : 0 < euclideanNorm z := by
-  exact Real.sqrt_pos.2 (radiusSquared_pos hz)
-
-@[simp] theorem euclideanNorm_pos_iff (z : Point) :
-    0 < euclideanNorm z ↔ z ≠ 0 := by
-  constructor
-  · intro h hz
-    subst z
-    simp at h
-  · exact euclideanNorm_pos
-
-theorem euclideanNorm_continuous : Continuous euclideanNorm := by
-  unfold euclideanNorm radiusSquared
-  fun_prop
-
 /-- The evaluated cubic vector field scales with degree three. -/
 theorem fieldValue_smul (a : ℝ) (z : Point) :
     fieldValue (a • z) = a ^ 3 • fieldValue z := by
