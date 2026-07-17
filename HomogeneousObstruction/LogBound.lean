@@ -1,5 +1,5 @@
 import HomogeneousObstruction.LogSeries
-import HomogeneousObstruction.ManuscriptFourierDegree
+import HomogeneousObstruction.ActualFourierDegree
 
 namespace HomogeneousObstruction
 

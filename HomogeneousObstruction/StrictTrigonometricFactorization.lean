@@ -8,7 +8,7 @@ open scoped BigOperators ComplexConjugate Polynomial
 noncomputable section
 
 /-!
-# The manuscript form of strict Fejer--Riesz
+# Strict trigonometric factorization
 
 This file records the proof objects used in the paper: the polynomial B
 formed from the roots outside the unit disk, its reciprocal-conjugate

@@ -1,5 +1,5 @@
 import HomogeneousObstruction.HalfAnglePolynomial
-import HomogeneousObstruction.ManuscriptFejerRiesz
+import HomogeneousObstruction.StrictTrigonometricFactorization
 import HomogeneousObstruction.FourierBasic
 
 namespace HomogeneousObstruction
@@ -10,7 +10,7 @@ open scoped BigOperators ComplexConjugate Polynomial
 noncomputable section
 
 /-!
-# The finite even Fourier expansion used in the manuscript
+# Actual Fourier degree and the finite even expansion
 
 This file isolates the order of the first part of Lemma 5.2.  For a
 homogeneous polynomial of degree `2 * N`, it first writes the circle trace as

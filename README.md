@@ -63,7 +63,7 @@ the final exported theorem.
   manuscript's displayed actual-degree polynomial `A_L` is defined in the
   next module.
 
-- `HomogeneousObstruction/ManuscriptFourierDegree.lean` makes the opening of
+- `HomogeneousObstruction/ActualFourierDegree.lean` makes the opening of
   the logarithmic second-harmonic lemma explicit.  The theorems
   `halfAngleTrace_finiteFourierExpansion` and
   `circleTrace_evenFourierExpansion` give the finite modes of `q` and the even
@@ -93,8 +93,9 @@ the final exported theorem.
   and outside roots, and the product/polynomial data structures with their
   degree, zero-free, and squared-norm consequences.
 
-- `HomogeneousObstruction/ManuscriptFejerRiesz.lean` exposes the intermediate
-  objects written in the manuscript.  It defines `manuscriptB` from the roots
+- `HomogeneousObstruction/StrictTrigonometricFactorization.lean` exposes the
+  intermediate objects written in the manuscript.  It defines `manuscriptB`
+  from the roots
   outside the unit disk and `manuscriptBsharp` for `B#`, proves their degree,
   root, and unit-circle identities, and proves the scalar relation
   `A = κ B B#` in `manuscript_exists_kappa_mul_B_Bsharp`.
@@ -147,9 +148,9 @@ the final exported theorem.
 
 ## Integration status
 
-The manuscript-specific files `ManuscriptFourierDegree.lean`,
-`ManuscriptFejerRiesz.lean`, and `LogSeries.lean` are all on the transitive
-dependency path of `mainTheorem_item3`.  More specifically, the active proof
+The proof-specific files `ActualFourierDegree.lean`,
+`StrictTrigonometricFactorization.lean`, and `LogSeries.lean` are all on the
+transitive dependency path of `mainTheorem_item3`.  More specifically, the active proof
 uses the displayed even-mode and half-angle expansions, the paper-normalized
 Fourier coefficients, real coefficient conjugacy, the actual-degree split,
 the stated strict trigonometric factorization, the direct `A_L=κBB#`
