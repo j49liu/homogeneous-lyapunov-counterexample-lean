@@ -2,7 +2,7 @@
 
 ## Overview
 
-This Lean 4/mathlib repository formalizes items (2), (3), and (4) of the main theorem
+This Lean 4/mathlib repository formalizes all four items of the main theorem
 in the paper [1].  For the explicit cubic vector field studied there, item (2)
 constructs the Lyapunov certificate
 
@@ -30,8 +30,13 @@ term, proves the manuscript's ray and Lie-derivative asymptotics, applies the
 manuscript's integrating-factor argument to make that term positive definite,
 and invokes item (3).
 
-The ODE-level global asymptotic stability assertion in main theorem item (1)
-is not formalized in this repository.
+Item (1) proves that the origin is globally asymptotically stable in the
+standard forward-trajectory sense: every initial state has a solution on the
+whole nonnegative time ray, the origin is Lyapunov stable, and every such
+trajectory converges to the origin.  The proof uses the explicit certificate
+from item (2), together with a self-contained smooth-cutoff continuation
+argument because mathlib provides local Picard--Lindelof existence but no
+ready-made bounded-trajectory continuation theorem.
 
 ## Reference
 
@@ -51,11 +56,34 @@ lake env lean HomogeneousObstruction.lean
 ```
 
 The second command runs the top-level theorem file and executes
+`#print axioms mainTheorem_item1`,
 `#print axioms mainTheorem_item2`,
 `#print axioms mainTheorem_item3`, and
 `#print axioms mainTheorem_item4`.
 
 ## Map from the paper to Lean
+
+- `HomogeneousObstruction/LyapunovGAS.lean` formalizes the textbook
+  epsilon--delta Lyapunov-direct-method argument used in the last sentence of
+  the manuscript's stability subsection.  It defines forward trajectories,
+  forward completeness, Lyapunov stability, global attractivity, and global
+  asymptotic stability using the manuscript's Euclidean norm.  From the
+  certificate bounds and `L_f H = -2(x²+y²)H`, it proves stability and global
+  attractivity for every forward trajectory, conditional on forward
+  completeness.
+
+- `HomogeneousObstruction/ForwardCompleteness.lean` supplies that missing
+  forward-completeness step for the explicit cubic field.  It proves a
+  bounded globally Lipschitz field has a global integral curve by compatible
+  Picard--Lindelof solutions on symmetric finite intervals.  It then uses a
+  nonnegative smooth compact cutoff which is one on a sufficiently large
+  Lyapunov sublevel set; monotonicity of `H` proves that the cutoff never
+  activates in forward time.
+
+- `HomogeneousObstruction/GlobalAsymptoticStability.lean` composes the two
+  preceding modules and exports `mainTheorem_item1`, exactly corresponding to
+  the manuscript's statement that the origin is globally asymptotically
+  stable.
 
 - `HomogeneousObstruction/StabilityCertificate.lean` defines the explicit
   certificate `stabilityCertificate`, the squared radius, and the
@@ -265,10 +293,11 @@ The second command runs the top-level theorem file and executes
 
 ## Integration status
 
-The top-level file imports the complete item (2) certificate proof, item (3)
-polynomial obstruction, and item (4) local real-analytic obstruction, and
-audits `mainTheorem_item2`, `mainTheorem_item3`, and `mainTheorem_item4`
-separately.  For item (2), the
+The top-level file imports the complete item (1) global-asymptotic-stability
+proof, item (2) certificate proof, item (3) polynomial obstruction, and item
+(4) local real-analytic obstruction, and audits `mainTheorem_item1`,
+`mainTheorem_item2`, `mainTheorem_item3`, and `mainTheorem_item4` separately.
+For item (2), the
 canonical theorem is exported by `StabilityCertificateManuscript.lean`.  Its
 active dependency path follows the manuscript architecture: polar
 point representation, bounds, and two-homogeneity; the polar velocity-curve
@@ -279,9 +308,15 @@ for off-origin differentiability and smoothness, and its separately assembled
 theorem is named `mainTheorem_item2_cartesian_auxiliary`.
 
 The manuscript's general all-`k` cone-tip lemma is not formalized: the Lean
-development proves and uses precisely the `k=2` case needed for `H`.  The
-ODE-level global asymptotic stability assertion in main theorem item (1) is
-also not formalized.
+development proves and uses precisely the `k=2` case needed for `H`.  For
+item (1), the continuation proof is a standard implementation detail absent
+from the manuscript's one-line invocation of Lyapunov's direct method: it
+uses a compact smooth cutoff solely to obtain a global curve, then proves the
+cutoff equals one along every forward-time point of that curve.  The exported
+statement itself is the usual epsilon--delta global-asymptotic-stability
+property for the original field.
+`#print axioms mainTheorem_item1` reports only `propext`,
+`Classical.choice`, and `Quot.sound`.
 
 For item (3), the proof-specific files `ActualFourierDegree.lean`,
 `StrictTrigonometricFactorization.lean`, and `LogSeries.lean` are all on the
